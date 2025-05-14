@@ -1,0 +1,224 @@
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+  color: #fff;
+  overflow-x: hidden;
+}
+
+#particles-js {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  top: 0;
+  left: 0;
+}
+
+.container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: auto;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+h2 {
+  text-align: center;
+  color: #4da6ff;
+  margin-bottom: 20px;
+  text-shadow: 0 0 8px rgba(77, 166, 255, 0.5);
+}
+
+.filter-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+}
+
+.filter-section select, .filter-section button {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  background-color: #1f2937;
+  color: white;
+  border: 1px solid rgba(77, 166, 255, 0.5);
+  cursor: pointer;
+}
+
+.filter-section button:hover {
+  background: #3a86ff;
+  color: white;
+}
+
+.chart-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: space-around;
+  margin-bottom: 30px;
+}
+
+.charts-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.chart-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 350px;
+}
+
+.chart-title {
+  color: #fff;
+  font-size: 18px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.chart-container {
+  width: 100%;
+  height: 300px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Ensure canvas or word cloud fits inside */
+canvas, #wordCloudChart {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Responsive support */
+@media (max-width: 1000px) {
+  .charts-wrapper {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .chart-block {
+    width: 90%;
+    max-width: 600px;
+  }
+}
+
+#charts-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.chart-title {
+  color: #fff;
+  font-size: 16px;
+  text-align: center;
+  margin-bottom: 5px;
+}
+
+.chart-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+.chart-container h3 {
+  text-align: center;
+  color: #4da6ff;
+  margin-bottom: 10px;
+}
+
+.feedback-item {
+  margin-bottom: 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border-left: 5px solid #3a86ff;
+  border-radius: 12px;
+  padding: 15px;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.2s;
+}
+
+.feedback-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateX(5px);
+}
+
+.feedback-header {
+  font-weight: bold;
+  color: #fff;
+}
+
+.feedback-details {
+  display: none;
+  margin-top: 10px;
+  padding-left: 10px;
+  color: #ccc;
+  font-size: 14px;
+}
+
+.feedback-details.show {
+  display: block;
+}
+
+.feedback-details pre {
+  white-space: pre-wrap;
+  color: #ccc;
+}
+
+.word-frequency h3 {
+  margin-top: 40px;
+  color: #4da6ff;
+  text-align: center;
+}
+
+.feedback-counts {
+  text-align: center;
+  margin-bottom: 10px;
+  color: #ccc;
+}
+
+#toggleFeedbackBtn {
+  display: block;
+  margin: 15px auto 30px auto;
+  padding: 8px 16px;
+  background-color: #3a86ff;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s;
+}
+
+#toggleFeedbackBtn:hover {
+  background-color: #1a6ed8;
+  transform: translateY(-2px);
+}
+
+#wordCloud {
+  width: 100%;
+  height: 400px;
+  max-height: 400px;
+  overflow: hidden;
+  margin: 0 auto;
+  position: relative;
+}

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>User Dashboard</title>
+  <link rel="stylesheet" href="../static/css/user_style.css">
+</head>
+<body data-user-type="user" data-email="{{ email }}">
+
+  <div id="particles-js"></div>
+
+  <div class="dashboard-container">
+    <h2>Welcome, User</h2>
+
+    <div class="conversations-container">
+      <div class="conversations-sidebar">
+        <div class="sidebar-header">
+          <h3>Conversations</h3>
+          <button id="newConversationBtn" class="new-conversation-btn">New Chat</button>
+        </div>
+        <div class="conversation-list" id="conversationList">
+          <!-- Conversation history will be listed here -->
+          <div class="no-conversations">No previous chats found</div>
+        </div>
+      </div>
+
+      <div class="chat-container">
+        <div class="chat-header">
+          <span id="currentConversationName">New Conversation</span>
+          <div class="model-selector">
+            <label for="modelSelect" class="model-label">Model:</label>
+            <select id="modelSelect" name="model">
+              <option value="fine_tuned">Fine-tuned</option>
+              <option value="rag">RAG</option>
+              <option value="llama">Llama</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+          <div class="welcome-message">
+            <p>Hello! How can I assist you today?</p>
+          </div>
+          <!-- Chat messages will appear here -->
+        </div>
+        
+        <div class="chat-input-container">
+          <form id="userQueryForm">
+            <textarea placeholder="Type your message here..." rows="2" required></textarea>
+            <button type="submit">Send</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Text Feedback Section (hidden by default) -->
+    <div id="textFeedbackSection" style="display:none; margin-top:10px;">
+      <textarea id="user-feedback-comment" autocomplete="off" placeholder="Please provide your feedback about the response..." rows="2" required></textarea>
+      <button type="button" onclick="sendFeedbackComment()">Submit Feedback</button>
+    </div>
+
+    <!-- Thank you message (hidden by default) -->
+    <div id="feedbackThanks" style="display:none; margin-top:10px;">
+      <p>Thank you for your feedback!</p>
+    </div>
+  </div>
+  
+  <script src="../static/js/dashboard.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+  <script>
+   document.addEventListener('DOMContentLoaded', function () {
+    const baseURL = window.location.origin;
+    particlesJS.load('particles-js', '/static/particles.json', function() {
+      console.log('Particles.js config loaded');
+    });
+  });
+  </script>
+  
+</body>
+</html>
