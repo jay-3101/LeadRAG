@@ -347,18 +347,20 @@ def handle_query():
 
     save_json_file(QUERY_FILE, entry)
 
-    def model_response(model, query):
-        if model_type == "fine_tuned":
-            response = get_finetuned_response(query_text)
-        elif model_type == "rag":
-            response = get_rag_response(query_text)
-        else:
-            response = get_llama_response(query_text)
-
-        return response
+   
 
     try:
-        response_text = model_response(model_type, query_text)
+        if model_type == "fine_tuned":
+            response_text = get_finetuned_response(query_text)
+        elif model_type == "rag":
+            response = get_rag_response(query_text)
+            response_text=response["answer"]
+
+        elif model_type =="llama":
+            response_text = get_llama_response(query_text)
+        else:
+            response_text="Wrong Model selected "
+        
         
         # Save to conversation history if conversation_id is provided
         if conversation_id:
