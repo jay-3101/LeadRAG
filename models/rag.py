@@ -14,7 +14,7 @@ import torch
 from tqdm import tqdm
 from typing import List, Tuple, Dict, Any, Optional, Union
 import re 
-
+from models.llama import get_llama_response
 # Try to import all required packages, with fallbacks
 try:
     import PyPDF2
@@ -383,7 +383,8 @@ class RAGSystem:
         self.metadata_paths = metadata_paths
         return metadata_paths
     
-    def load_llm(self, model_id: str = "TinyLlama/TinyLlama-1.1B-Chat-v1.0") -> Any:
+    
+    # def load_llm(self, model_id: str = "TinyLlama/TinyLlama-1.1B-Chat-v1.0") -> Any:
         """Load a language model for generation.
         
         Args:
@@ -615,8 +616,8 @@ class RAGSystem:
             self.process_all_pdfs()
         
         # Make sure we have an LLM
-        if self.llm is None:
-            self.llm = self.load_llm()
+        # if self.llm is None:
+        #     self.llm = self.load_llm()
         
         # Find the most relevant PDF
         metadata_path, similarity, filename, pdf_path = self.find_relevant_pdf(question)
@@ -648,23 +649,31 @@ class RAGSystem:
         
         # Create prompt for the LLM
         prompt = f"""
-You are an AI assistant specializing in providing accurate information from PDF documents.
-Answer the following question based on the provided context from the document.
-Only use information from the context. If you don't know the answer, say so.
+        You are an AI assistant that answers questions using only the information provided in the given document context. 
+        You MUST NOT use outside knowledge or make up any facts. If the answer is not clearly present in the context, respond with: 
+        "I don't know based on the provided context."
 
-{conversation_context}
-Document: {metadata['pdf_filename']} (at {pdf_path})
+        Document Name: {metadata['pdf_filename']}  
+        Document Path: {pdf_path}
 
-Context:
-{context}
+        Context:
+        \"\"\"
+        {context}
+        \"\"\"
 
-Question: {question}
+        Conversation so far:
+        {conversation_context}
 
-Answer:
-"""
+        Now, answer the following question strictly using the context above.
+
+        Question: {question}
+
+        Final Answer:
+        """
+
         
         # Generate response
-        response = self.llm(prompt)
+        response = get_llama_response(prompt)
         
         # Add to conversation history
         self.conversation_history.append((question, response))
@@ -722,8 +731,8 @@ def get_rag_response(query, pdf_folder='../backend/uploads', use_gpu=False, mode
     if _rag_instance is None or current_pdf_files != _last_pdf_files:
         print("Initializing or refreshing RAG system...")
         _rag_instance = RAGSystem(pdf_folder=pdf_folder, use_gpu=use_gpu)
-        if model_id:
-            _rag_instance.llm = _rag_instance.load_llm(model_id=model_id)
+        # if model_id:
+        #     _rag_instance.llm = _rag_instance.load_llm(model_id=model_id)
         _rag_instance.process_all_pdfs()
         _last_pdf_files = current_pdf_files
 
@@ -732,11 +741,11 @@ def get_rag_response(query, pdf_folder='../backend/uploads', use_gpu=False, mode
     try:
         response,_,context = rag.query(query)
 
-        answer_match = re.search(r"Answer:\s*(.*)", response, re.DOTALL | re.IGNORECASE)
-        answer = answer_match.group(1).strip() if answer_match else "Answer not found"
+        # answer_match = re.search(r"Answer:\s*(.*)", response, re.DOTALL | re.IGNORECASE)
+        # answer = answer_match.group(1).strip() if answer_match else "Answer not found"
 
         return {
-            "answer": answer,
+            "answer": response,
             "context": context
         }
 

@@ -247,7 +247,7 @@ document.addEventListener('DOMContentLoaded', function() {
       conversation.messages.forEach(message => {
         const messageEl = document.createElement('div');
         messageEl.className = `message ${message.role === 'user' ? 'user-message' : 'assistant-message'}`;
-        messageEl.textContent = message.content;
+        messageEl.innerHTML = message.content.replace(/\n/g, '<br>');
         chatMessages.appendChild(messageEl);
       });
       
@@ -298,7 +298,7 @@ document.addEventListener('DOMContentLoaded', function() {
           const data = await response.json();
           
           // Add response to UI
-          addMessage('assistant', data.response);
+          addMessage('assistant', data.response,data.context);
           
           // Add response to conversation in memory
           if (conversations[currentConversationId]) {
@@ -344,15 +344,46 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Add a message to the chat
-    function addMessage(role, content) {
-      const messageEl = document.createElement('div');
-      messageEl.className = `message ${role === 'user' ? 'user-message' : 'assistant-message'}`;
-      messageEl.textContent = content;
-      chatMessages.appendChild(messageEl);
-      
-      // Scroll to bottom
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
+function addMessage(role, content, context = null) {
+  const messageEl = document.createElement('div');
+  messageEl.className = `message ${role === 'user' ? 'user-message' : 'assistant-message'}`;
+  messageEl.innerHTML = content.replace(/\n/g, '<br>');
+
+  chatMessages.appendChild(messageEl);
+
+  // If RAG and assistant with context — add separate context section below
+  if (
+    role === 'assistant' &&
+    modelSelect.value === 'rag' &&
+    context &&
+    context.trim() !== ''
+  ) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'rag-context-wrapper';
+
+    const toggleBtn = document.createElement('button');
+    toggleBtn.textContent = 'Show Context ⬇️';
+    toggleBtn.className = 'toggle-context-btn';
+
+    const contextBox = document.createElement('div');
+    contextBox.className = 'context-box';
+    contextBox.innerHTML = context.replace(/\n/g, '<br>');
+    contextBox.style.display = 'none';
+
+    toggleBtn.addEventListener('click', () => {
+      const isHidden = contextBox.style.display === 'none';
+      contextBox.style.display = isHidden ? 'block' : 'none';
+      toggleBtn.textContent = isHidden ? 'Hide Context ⬆️' : 'Show Context ⬇️';
+    });
+
+    wrapper.appendChild(toggleBtn);
+    wrapper.appendChild(contextBox);
+    chatMessages.appendChild(wrapper);
+  }
+
+  // Scroll to bottom
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
     
     // Upload document (admin only)
     async function uploadDocument(form) {
