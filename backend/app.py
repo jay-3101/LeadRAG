@@ -347,7 +347,13 @@ def handle_query():
 
     save_json_file(QUERY_FILE, entry)
 
-   
+    fallback_responses = [
+    "i don't know based on the provided context",
+    "i do not know based on the provided context",
+    "i am not sure based on the context",
+    "i don't have enough information to answer that",
+    "i'm unable to answer that based on the provided information"]
+
 
     try:
         if model_type == "fine_tuned":
@@ -355,6 +361,10 @@ def handle_query():
         elif model_type == "rag":
             response = get_rag_response(query_text)
             response_text=response["answer"]
+            if response_text.strip().lower() in fallback_responses:
+                context = "⚠️ Not enough context was found for this question."
+            else:
+             context=response["context"]
 
         elif model_type =="llama":
             response_text = get_llama_response(query_text)
@@ -374,6 +384,12 @@ def handle_query():
             }
             save_conversation(conversation_data)
         
+        if model_type == "rag":
+            return jsonify({
+            "response": response_text,
+            "context": context,
+            "conversation_id": conversation_id})
+
         return jsonify({
             "response": response_text,
             "conversation_id": conversation_id
