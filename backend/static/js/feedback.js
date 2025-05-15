@@ -1,401 +1,297 @@
-// Feedback Analysis JavaScript
-document.addEventListener('DOMContentLoaded', function() {
-  // Load particles.js
-  particlesJS.load('particles-js', '/static/particles.json', function() {
-    console.log('Particles.js config loaded');
-  });
+let allFeedbacks = [];
+let showingAll = false;
 
-  // Fetch feedback data
-  fetchFeedbackData();
 
-  // Setup event listeners
-  document.getElementById('applyFilters').addEventListener('click', applyFilters);
-  document.getElementById('toggleFeedbackBtn').addEventListener('click', toggleFeedbackList);
-});
+const stopwords = ["the", "is", "in", "and", "to", "a", "of", "for", "on", "it", "this", "that", "can", "be", "how"];
 
-// Fetch feedback data from server
-async function fetchFeedbackData() {
-  try {
-    const response = await fetch('/get_feedback_data');
-    const data = await response.json();
-    
-    if (data) {
-      renderDashboard(data);
-      populateFeedbackList(data.feedback);
-      updateFeedbackCounts(data.feedback);
-    }
-  } catch (error) {
-    console.error('Error fetching feedback data:', error);
-  }
-}
-
-// Render all dashboard charts
-function renderDashboard(data) {
-  // Generate dummy data for visualizations
-  const dummyData = generateDummyData();
+async function loadFeedback() {
+  const type = document.getElementById('typeFilter').value;
+  const model = document.getElementById('modelFilter').value;
   
-  // Render each chart
-  renderModelComparisonChart(dummyData.modelComparison);
-  renderSatisfactionTrendChart(dummyData.satisfactionTrend);
-  renderSuggestedTopics(data.suggested_topics);
-  renderResponseTimeChart(dummyData.responseTimes);
-  renderUserTypeChart(dummyData.userTypes);
-  renderQueryCategoriesChart(dummyData.queryCategories);
-}
+  const res = await fetch('/get_feedback_data');
+  const data = await res.json();
 
-// Generate dummy data for charts
-function generateDummyData() {
-  return {
-    modelComparison: {
-      labels: ['Fine-tuned', 'RAG', 'Llama'],
-      datasets: [
-        {
-          label: 'Avg. Satisfaction',
-          data: [4.2, 3.8, 3.5],
-          backgroundColor: 'rgba(58, 134, 255, 0.7)',
-        },
-        {
-          label: 'Accuracy Rating',
-          data: [4.5, 4.1, 3.7],
-          backgroundColor: 'rgba(75, 192, 192, 0.7)',
-        }
-      ]
-    },
-    satisfactionTrend: {
-      labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'],
-      datasets: [{
-        label: 'User Satisfaction',
-        data: [3.5, 3.7, 4.0, 4.2, 4.3],
-        borderColor: 'rgba(58, 134, 255, 0.8)',
-        backgroundColor: 'rgba(58, 134, 255, 0.2)',
-        tension: 0.3,
-        fill: true
-      }]
-    },
-    responseTimes: {
-      labels: ['Fine-tuned', 'RAG', 'Llama'],
-      datasets: [{
-        label: 'Avg. Response Time (s)',
-        data: [1.2, 2.8, 0.8],
-        backgroundColor: 'rgba(153, 102, 255, 0.7)',
-      }]
-    },
-    userTypes: {
-      labels: ['Admin', 'Regular User'],
-      datasets: [{
-        data: [25, 75],
-        backgroundColor: ['rgba(58, 134, 255, 0.7)', 'rgba(75, 192, 192, 0.7)'],
-      }]
-    },
-    queryCategories: {
-      labels: ['Information', 'Assistance', 'Technical', 'Analysis', 'Other'],
-      datasets: [{
-        label: 'Query Count',
-        data: [45, 30, 22, 18, 10],
-        backgroundColor: [
-          'rgba(58, 134, 255, 0.7)',
-          'rgba(75, 192, 192, 0.7)',
-          'rgba(153, 102, 255, 0.7)',
-          'rgba(255, 159, 64, 0.7)',
-          'rgba(201, 203, 207, 0.7)'
-        ],
-      }]
-    }
-  };
-}
+  const feedbackArray = data.feedback || [];  // ✅ fixed: access actual array
+  const suggestedTopics = data.suggested_topics || [];  // ✅ topic data
 
-// Render Model Comparison Chart
-function renderModelComparisonChart(data) {
-  const ctx = document.getElementById('modelComparisonChart').getContext('2d');
-  new Chart(ctx, {
-    type: 'bar',
-    data: data,
-    options: {
-      responsive: true,
-      scales: {
-        y: {
-          beginAtZero: true,
-          max: 5,
-          ticks: {
-            color: 'rgba(255, 255, 255, 0.7)'
-          },
-          grid: {
-            color: 'rgba(255, 255, 255, 0.1)'
-          }
-        },
-        x: {
-          ticks: {
-            color: 'rgba(255, 255, 255, 0.7)'
-          },
-          grid: {
-            color: 'rgba(255, 255, 255, 0.1)'
-          }
-        }
-      },
-      plugins: {
-        legend: {
-          labels: {
-            color: 'rgba(255, 255, 255, 0.7)'
-          }
-        }
-      }
-    }
+  // Filtering logic based on user type and model type
+  const filtered = feedbackArray.filter(entry => {
+    const typeMatch = type === 'all' || entry.user_type === type;
+    const normalizedModel = (entry.model_type || '').toLowerCase();
+    const modelMatch = model === 'all' || normalizedModel === model;  
+    return typeMatch && modelMatch;
   });
-}
 
-// Render Satisfaction Trend Chart
-function renderSatisfactionTrendChart(data) {
-  const ctx = document.getElementById('satisfactionTrendChart').getContext('2d');
-  new Chart(ctx, {
-    type: 'line',
-    data: data,
-    options: {
-      responsive: true,
-      scales: {
-        y: {
-          beginAtZero: true,
-          max: 5,
-          ticks: {
-            color: 'rgba(255, 255, 255, 0.7)'
-          },
-          grid: {
-            color: 'rgba(255, 255, 255, 0.1)'
-          }
-        },
-        x: {
-          ticks: {
-            color: 'rgba(255, 255, 255, 0.7)'
-          },
-          grid: {
-            color: 'rgba(255, 255, 255, 0.1)'
-          }
-        }
-      },
-      plugins: {
-        legend: {
-          labels: {
-            color: 'rgba(255, 255, 255, 0.7)'
-          }
-        }
-      }
-    }
-  });
-}
+  // Update total counts for feedback
+  const total = filtered.length;
+  const userCount = filtered.filter(f => f.user_type === 'user').length;
+  const adminCount = filtered.filter(f => f.user_type === 'admin').length;
 
-// Render Suggested Topics List
-function renderSuggestedTopics(topics) {
-  const container = document.getElementById('suggestedTopics');
-  if (!topics || topics.length === 0) {
-    container.innerHTML = '<p class="no-data">No suggested topics available</p>';
-    return;
-  }
+  // Update the display with counts
+  document.getElementById("totalCount").innerText = `Total Feedbacks: ${total}`;
+  document.getElementById("userCount").innerText = `From Users: ${userCount}`;
+  document.getElementById("adminCount").innerText = `From Admins: ${adminCount}`;
 
-  const topicsList = document.createElement('ul');
-  topicsList.className = 'topics-list';
+  // Call renderFeedbackList instead of displayFeedback
+  renderFeedbackList(filtered);
+
+  // Word Frequency Calculation
+  const queries = filtered.map(f => f.query);
+  const wordFreq = getWordFrequencies(queries);
   
-  topics.forEach(topic => {
-    const item = document.createElement('li');
-    item.textContent = topic;
-    topicsList.appendChild(item);
-  });
-  
-  container.innerHTML = '';
-  container.appendChild(topicsList);
+
+  renderModelComparisonChart(data.model_performance);
+  renderSatisfactionTrendChart(data.satisfaction_trend);
+  renderResponseTimeChart(data.response_time);
+  renderUserTypeChart(data.user_type_distribution);
+  renderQueryCategoryChart(data.query_categories);
+  renderDocSuggestChart(data.suggested_topics);
+
 }
 
-// Render Response Time Chart
-function renderResponseTimeChart(data) {
-  const ctx = document.getElementById('responseTimeChart').getContext('2d');
-  new Chart(ctx, {
-    type: 'bar',
-    data: data,
-    options: {
-      responsive: true,
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: {
-            color: 'rgba(255, 255, 255, 0.7)'
-          },
-          grid: {
-            color: 'rgba(255, 255, 255, 0.1)'
-          }
-        },
-        x: {
-          ticks: {
-            color: 'rgba(255, 255, 255, 0.7)'
-          },
-          grid: {
-            color: 'rgba(255, 255, 255, 0.1)'
-          }
-        }
-      },
-      plugins: {
-        legend: {
-          labels: {
-            color: 'rgba(255, 255, 255, 0.7)'
-          }
-        }
+
+function getWordFrequencies(queries) {
+  const counts = {};
+  queries.forEach(q => {
+    q.toLowerCase().split(/\W+/).forEach(word => {
+      if (word && !stopwords.includes(word)) {
+        counts[word] = (counts[word] || 0) + 1;
       }
-    }
+    });
   });
+  return counts;
 }
 
-// Render User Type Chart
-function renderUserTypeChart(data) {
-  const ctx = document.getElementById('userTypeChart').getContext('2d');
+let chart;
+
+function renderDocSuggestChart(topics) {
+  const ctx = document.getElementById('docSuggestChart').getContext('2d');
+
+  if (!topics.length) return;
+
   new Chart(ctx, {
     type: 'doughnut',
-    data: data,
+    data: {
+      labels: topics,
+      datasets: [{
+        data: Array(topics.length).fill(1),
+        backgroundColor: ['#ff4d4d', '#ff6666', '#ff9999', '#cc0000', '#ff3333']
+      }]
+    },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
       plugins: {
-        legend: {
-          position: 'bottom',
-          labels: {
-            color: 'rgba(255, 255, 255, 0.7)'
-          }
-        }
+        legend: { labels: { color: '#fff' } }
       }
     }
   });
 }
 
-// Render Query Categories Chart
-function renderQueryCategoriesChart(data) {
-  const ctx = document.getElementById('queryCategoriesChart').getContext('2d');
+function renderModelComparisonChart(data) {
+  if (!data || Object.keys(data).length === 0) return;
+
+  const ctx = document.getElementById('modelComparisonChart').getContext('2d');
+  const models = Object.keys(data);
+  const scores = Object.values(data);
+
   new Chart(ctx, {
-    type: 'polarArea',
-    data: data,
+    type: 'bar',
+    data: {
+      labels: models,
+      datasets: [{
+        label: 'Average Score',
+        data: scores,
+        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: { beginAtZero: true, ticks: { color: '#fff' } },
+        x: { ticks: { color: '#fff' } }
+      }
+    }
+  });
+}
+
+function renderSatisfactionTrendChart(data) {
+  const ctx = document.getElementById('satisfactionTrendChart').getContext('2d');
+
+  // Limit to first 4 weeks
+  const maxWeeks = 4;
+  const labels = data.dates.slice(0, maxWeeks).map((_, idx) => `Week ${idx + 1}`);
+  const scores = data.scores.slice(0, maxWeeks);
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Satisfaction',
+        data: scores,
+        fill: false,
+        borderColor: '#4caf50',  // soft green line
+        backgroundColor: '#4caf50',
+        tension: 0.2,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        borderWidth: 2
+      }]
+    },
     options: {
       responsive: true,
       plugins: {
         legend: {
-          position: 'bottom',
-          labels: {
-            color: 'rgba(255, 255, 255, 0.7)'
-          }
+          labels: { color: '#fff' }
         }
       },
       scales: {
-        r: {
-          ticks: {
-            color: 'rgba(255, 255, 255, 0.7)'
-          },
-          grid: {
-            color: 'rgba(255, 255, 255, 0.1)'
-          }
+        y: {
+          ticks: { color: '#fff' },
+          beginAtZero: true,
+          max: 5 // Assuming satisfaction scale is 0-5
+        },
+        x: {
+          ticks: { color: '#fff' }
         }
       }
     }
   });
 }
 
-// Update feedback counts display
-function updateFeedbackCounts(feedback) {
-  if (!feedback) return;
-  
-  const totalFeedback = feedback.length;
-  const positiveFeedback = feedback.filter(f => f.feedback && f.feedback.toLowerCase().includes('good')).length;
-  const negativeFeedback = feedback.filter(f => f.feedback && f.feedback.toLowerCase().includes('bad')).length;
-  
-  const countsElement = document.querySelector('.feedback-counts');
-  countsElement.innerHTML = `
-    <strong>Total Feedback:</strong> ${totalFeedback} | 
-    <strong>Positive:</strong> ${positiveFeedback} | 
-    <strong>Negative:</strong> ${negativeFeedback}
-  `;
-}
 
-// Populate feedback list
-function populateFeedbackList(feedback) {
-  if (!feedback || feedback.length === 0) return;
-  
-  const feedbackList = document.getElementById('feedbackList');
-  feedbackList.innerHTML = '';
-  
-  feedback.forEach((item, index) => {
-    const feedbackItem = document.createElement('div');
-    feedbackItem.className = 'feedback-item';
-    feedbackItem.dataset.index = index;
-    
-    const timestamp = new Date(item.timestamp).toLocaleString();
-    const modelType = item.model_type || 'Unknown';
-    
-    feedbackItem.innerHTML = `
-      <div class="feedback-header">
-        <strong>${item.email}</strong> (${item.user_type}) - Model: ${modelType} - ${timestamp}
-      </div>
-      <div class="feedback-details" id="details-${index}">
-        <strong>Query:</strong> ${item.query}<br>
-        <strong>Response:</strong> <pre>${item.response}</pre><br>
-        <strong>Feedback:</strong> ${item.feedback}
-      </div>
-    `;
-    
-    feedbackItem.addEventListener('click', function() {
-      const detailsElement = document.getElementById(`details-${index}`);
-      detailsElement.classList.toggle('show');
-    });
-    
-    feedbackList.appendChild(feedbackItem);
+
+function renderResponseTimeChart(data) {
+  if (!data) return;
+
+  const ctx = document.getElementById('responseTimeChart').getContext('2d');
+  const models = Object.keys(data);
+  const times = Object.values(data);
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: models.map(m => m.toUpperCase()),
+      datasets: [{
+        label: 'Avg Response Time (ms)',
+        data: times,
+        backgroundColor: ['#03a9f4', '#8bc34a', '#ff9800']
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        x: { ticks: { color: '#fff' } },
+        y: {
+          beginAtZero: true,
+          ticks: { color: '#fff' }
+        }
+      }
+    }
   });
 }
 
-// Toggle feedback list visibility
-function toggleFeedbackList() {
-  const feedbackList = document.getElementById('feedbackList');
-  const button = document.getElementById('toggleFeedbackBtn');
-  
-  if (feedbackList.style.display === 'none') {
-    feedbackList.style.display = 'block';
-    button.textContent = 'Hide Detailed Feedback';
-  } else {
-    feedbackList.style.display = 'none';
-    button.textContent = 'Show Detailed Feedback';
-  }
+function renderUserTypeChart(counts) {
+  const ctx = document.getElementById('userTypeChart').getContext('2d');
+
+  new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: Object.keys(counts),
+      datasets: [{
+        data: Object.values(counts),
+        backgroundColor: [
+  '#4caf50', // green - User
+  '#f44336', // red - Admin
+  '#2196f3'  // blue - (optional third category)
+]
+      }]
+    },
+    options: {
+      plugins: {
+        legend: { labels: { color: '#fff' } }
+      }
+    }
+  });
 }
 
-// Apply filters to the dashboard
-function applyFilters() {
-  const modelType = document.getElementById('modelTypeFilter').value;
-  const timeRange = document.getElementById('timeFilter').value;
-  
-  console.log(`Applying filters: Model Type = ${modelType}, Time Range = ${timeRange}`);
-  
-  // Ideally, you would re-fetch or filter the data based on these parameters
-  // For the demo, we'll just reload the current data
-  fetchFeedbackData();
+function renderQueryCategoryChart(categories) {
+  const ctx = document.getElementById('queryCategoriesChart').getContext('2d');
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: Object.keys(categories),
+      datasets: [{
+        label: 'Query Count',
+        data: Object.values(categories),
+        backgroundColor: 'teal'
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        x: { ticks: { color: '#fff' } },
+        y: { ticks: { color: '#fff' } }
+      }
+    }
+  });
 }
 
-// Add CSS for the topics list
-const style = document.createElement('style');
-style.textContent = `
-  .topics-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    height: 100%;
-    overflow-y: auto;
-  }
-  
-  .topics-list li {
-    padding: 10px;
-    margin-bottom: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    transition: all 0.3s ease;
-  }
-  
-  .topics-list li:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateX(5px);
-  }
-  
-  .no-data {
-    color: rgba(255, 255, 255, 0.7);
-    text-align: center;
-    padding-top: 20%;
-  }
-`;
-document.head.appendChild(style);
+
+function renderFeedbackList(data) {
+  allFeedbacks = data;
+  const listDiv = document.getElementById("feedbackList");
+  const maxInitial = 5;
+
+  listDiv.innerHTML = "";
+  const visibleFeedbacks = showingAll ? data : data.slice(0, maxInitial);
+
+  visibleFeedbacks.forEach((item, idx) => {
+    const card = document.createElement("div");
+    card.className = "feedback-item";
+    card.innerHTML = `
+        <div class="feedback-header">
+            ${idx + 1}. <strong>Query:</strong> ${item.query}<br>
+            <strong>Feedback:</strong> ${item.feedback}
+        </div>
+      
+      <div class="feedback-details">
+        <p><strong>Feedback:</strong> ${item.feedback}</p>
+        <p><strong>Email:</strong> ${item.email}</p>
+        <p><strong>User Type:</strong> ${item.user_type}</p>
+        <p><strong>Model Type:</strong> ${item.model_type}</p>
+        <p><strong>Response:</strong></p>
+        <pre>${item.response}</pre>
+        <p><strong>Time:</strong> ${item.timestamp}</p>
+      </div>
+    `;
+    card.onclick = () => {
+      const detail = card.querySelector(".feedback-details");
+      detail.classList.toggle("show");
+    };
+    listDiv.appendChild(card);
+  });
+
+  document.getElementById("toggleFeedbackBtn").style.display = data.length > maxInitial ? "block" : "none";
+  document.getElementById("toggleFeedbackBtn").innerText = showingAll ? "Show Less" : "Show More";
+}
+
+function toggleFeedbackVisibility() {
+  showingAll = !showingAll;
+  renderFeedbackList(allFeedbacks);
+}
+
+
+// Initial load
+loadFeedback();

@@ -3,7 +3,7 @@ from flask_cors import CORS
 import os
 import json
 import threading
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import sys
 from flask import Flask, render_template, request, jsonify, session
 from flask import redirect, url_for
@@ -17,6 +17,9 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from models.llama import get_llama_response
 from models.finetuned import get_finetuned_response
 from models.rag import get_rag_response
+
+from collections import defaultdict
+
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 CORS(app, supports_credentials=True) # Allow CORS for all routes
@@ -432,15 +435,90 @@ def get_feedback():
     data = load_json_file(filepath)
     return jsonify(data)
 
-
 @app.route('/get_feedback_data')
 def get_feedback_data():
-    feedback = load_json_file(FEEDBACK_FILE)
-    suggested_topics = extract_top_keywords(feedback)
-    return jsonify({
-        "feedback": feedback,
-        "suggested_topics": suggested_topics
-    })
+    try:
+        with open('feedback.json') as f:
+            feedback_data = json.load(f)
+
+        model_filter = request.args.get('model', 'all').lower()
+        user_filter = request.args.get('user', 'all').lower()
+
+        def filter_entry(entry):
+            model = entry.get('model_type', '').lower()
+            user = entry.get('user_type', '').lower()
+            return (model_filter == 'all' or model == model_filter) and \
+                   (user_filter == 'all' or user == user_filter)
+
+        filtered = [entry for entry in feedback_data if filter_entry(entry)]
+
+        # Suggested Topics (mocked for now)
+        suggested_topics = [
+        "RAG Model Architecture",
+        "Fine-tuning Techniques",
+        "LLaMA Evaluation",
+        "Reducing Response Time",
+        "User Query Optimization"]
+
+        # 1. Model Performance (dummy: avg feedback length as proxy for score)
+        avg_model_scores = {
+        'rag': 4.9,
+        'fine-tuned': 3.9,
+        'llama': 3.6}
+
+        # 2. Satisfaction Trend (avg feedback length per day)
+        satisfaction_trend = {
+            'dates': ["Week 1", "Week 2", "Week 3", "Week 4"],
+            'scores': [1.5, 2.0, 3.2, 4.4]  # average satisfaction values
+        }
+
+        # 3. Response Time (dummy values per day for now)
+        response_time = {
+            'rag': 120,
+            'fine-tuned': 95,
+            'llama': 110
+        }
+
+        # 4. User Type Distribution
+        user_types = defaultdict(int)
+        for entry in feedback_data:
+            user = entry.get('user_type', 'unknown').lower()
+            user_types[user] += 1
+
+        # 5. Query Categories (simple keyword buckets)
+        categories = defaultdict(int)
+        for entry in feedback_data:
+            q = entry.get('query', '').lower()
+
+            if any(k in q for k in ['bio', 'photosynthesis', 'plant', 'organism']):
+                categories['Biology'] += 1
+            elif any(k in q for k in ['ai', 'model', 'transformer', 'llama']):
+                categories['AI/ML'] += 1
+            elif any(k in q for k in ['tech', 'software', 'api']):
+                categories['Technology'] += 1
+            elif any(k in q for k in ['earth', 'solar', 'water', 'climate']):
+                categories['Environment'] += 1
+            elif any(k in q for k in ['finance', 'stock', 'market']):
+                categories['Finance'] += 1
+            else:
+                categories['General'] += 1
+
+        return jsonify({
+            'feedback': filtered,
+            'suggested_topics': suggested_topics,
+            'model_performance': avg_model_scores,
+            'satisfaction_trend': satisfaction_trend,
+            'response_time': response_time,
+            'user_type_distribution': user_types,
+            'query_categories': categories
+        })
+
+    except Exception as e:
+        import traceback
+        print("Error in /get_feedback_data:", e)
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
 
 # ---------- Run Server ----------
 

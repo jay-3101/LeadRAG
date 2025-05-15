@@ -222,3 +222,23 @@ canvas, #wordCloudChart {
   margin: 0 auto;
   position: relative;
 }
+
+.show-more-btn {
+  display: block;
+  margin: 10px auto;
+  padding: 8px 16px;
+  background-color: #4da6ff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.show-more-btn:hover {
+  background-color: #1a6ed8;
+}
+#suggestedTopics {
+  overflow-y: auto;
+  max-height: 250px; /* Ensure enough room to scroll */
+  padding-right: 5px;
+}
