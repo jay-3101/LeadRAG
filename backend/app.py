@@ -357,12 +357,18 @@ def handle_query():
             response_text = get_finetuned_response(query_text)
         elif model_type == "rag":
             response = get_rag_response(query_text)
-            response_text=response["answer"]
+            # print(response)
+            if isinstance(response, dict) and 'error' in response:
+                response_text=response['error']
+                context="No Pdf No Context"
+            else :
 
-            if response_text== "I don't know based on the provided context.":
-                context = "⚠️ Not enough context was found for this question."
-            else:
-             context=response["context"]
+                response_text=response["answer"]
+
+                if response_text== "I don't know based on the provided context.":
+                    context = "⚠️ Not enough context was found for this question."
+                else:
+                    context=response["context"]
 
         elif model_type =="llama":
             response_text = get_llama_response(query_text)
