@@ -350,12 +350,6 @@ def handle_query():
 
     save_json_file(QUERY_FILE, entry)
 
-    fallback_responses = [
-    "i don't know based on the provided context",
-    "i do not know based on the provided context",
-    "i am not sure based on the context",
-    "i don't have enough information to answer that",
-    "i'm unable to answer that based on the provided information"]
 
 
     try:
@@ -363,11 +357,18 @@ def handle_query():
             response_text = get_finetuned_response(query_text)
         elif model_type == "rag":
             response = get_rag_response(query_text)
-            response_text=response["answer"]
-            if response_text.strip().lower() in fallback_responses:
-                context = "⚠️ Not enough context was found for this question."
-            else:
-             context=response["context"]
+            # print(response)
+            if isinstance(response, dict) and 'error' in response:
+                response_text=response['error']
+                context="No Pdf No Context"
+            else :
+
+                response_text=response["answer"]
+
+                if response_text== "I don't know based on the provided context.":
+                    context = "⚠️ Not enough context was found for this question."
+                else:
+                    context=response["context"]
 
         elif model_type =="llama":
             response_text = get_llama_response(query_text)
