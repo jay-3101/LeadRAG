@@ -15,9 +15,14 @@
 ## 📦 Installation & Setup
 
 ### 1. Clone the Repository
-### 2. Install Dependencies
-pip install -r requirements.txt
-### 3. Set Up Your GROQ API Key
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/jay-3101/RAG_Chatbot.git
+cd RAG_Chatbot
+```
+
+### 2. Set Up Your GROQ API Key
 This project uses GROQ’s free API to call the LLaMA model(Open Source Model.
 
 Steps:
@@ -25,13 +30,33 @@ Sign up at https://console.groq.com/keys
 
 Generate your GROQ API key
 
-Create a .env file in the root directory with the following content:
+
+### 3.Running the Project
+#### 1. Using shell Script
+Use the run.sh script to automatically install dependencies, export your API key, and start the backend server:
+```bash
+chmod +x run.sh  # (Only once)
+./run.sh your_groq_api_key_here
+```
+
+This will:
+
+Export the GROQ_API_KEY to your environment
+
+Install Python dependencies
+
+Start the backend server on http://127.0.0.1:5000
+
+#### 2. Manual Setup
+In the env file Update
 
 GROQ_API_KEY=your_groq_api_key_here
 
-## Running the Project
+```bash
+pip install -r requirements.txt
 cd backend
 python app.py
+```
 
 The server will start on http://127.0.0.1:5000
 Follow the on-screen instructions for signup, login, and interacting with the system.
