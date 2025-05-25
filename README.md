@@ -18,7 +18,7 @@
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/jay-3101/RAG_Chatbot.git
+git clone https://github.com/jay-3101/LeadRAG.git
 cd RAG_Chatbot
 ```
 
